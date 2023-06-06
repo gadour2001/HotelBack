@@ -39,10 +39,10 @@ exports.updateOneMaterialProduct=(id,Name,Description,Prix,Image,idCategory)=>{
                 idCategorie:idCategory,
 
             }).then((done)=>{
-                mongoose.disconnect
+                mongoose.disconnect()
                 resolve(done)
             }).catch((err)=>{
-                mongoose.disconnect
+                mongoose.disconnect()
                 reject(err)
             })
         }).catch((err)=>reject(err))
@@ -57,10 +57,10 @@ exports.updateQuantity=(id,Quantity)=>{
                 return materialProduct.updateOne({_id : id},{
                 quantity:(parseInt(Quantity) + parseInt(res.quantity))})
                 .then((res) => {
-                    mongoose.disconnect
+                    mongoose.disconnect()
                     resolve(res)
                 }).catch((err)=>{
-                    mongoose.disconnect
+                    mongoose.disconnect()
                     reject(err)
                 })
             }).catch((err)=>{

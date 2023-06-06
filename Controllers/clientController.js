@@ -1,12 +1,14 @@
 const Client = require('../models/client');
+const Responsable = require('../Controllers/responsableClientController');
 const bcrypt = require('bcrypt');
 const nodemailer = require ('nodemailer');
 const mongoose = require('mongoose');
+const user = require('../models/user');
 require('dotenv').config();
 
 const url = process.env.URL;
 
-
+const verificationCodeLength = 6
 exports.register = (Username, Email, Password, DateBirth, IdPassport , idResp) => {
     return new Promise((resolve, reject) => {
       mongoose
@@ -22,6 +24,8 @@ exports.register = (Username, Email, Password, DateBirth, IdPassport , idResp) =
             bcrypt
               .hash(Password, 10)
               .then((hashPassword) => {
+                const verificationCode = generateVerificationCode(verificationCodeLength);
+
                 let new_user = new Client({
                   username: Username,
                   email: Email,
@@ -34,18 +38,46 @@ exports.register = (Username, Email, Password, DateBirth, IdPassport , idResp) =
                   nbrJour:0,
                   numChambre:0,
                   isActive: false,
-                  idResponsableClient:idResp
+                  idResponsableClient:idResp,
+                  verificationCode:verificationCode,
+                  log : true
                 })
-                return new_user.save()
-              })
-              .then(() => {
-                mongoose.disconnect()
-                resolve('Client registered successfully')
-              })
-              .catch((err) => {
+
+                return new_user.save().then((res) => {
+                  const transporter = nodemailer.createTransport({
+                    service: 'gmail',
+                    auth: {
+                      user: 'hotelwallet0@gmail.com',
+                      pass: 'keguwbhjigdwzqnx',
+                    },
+                  });
+    
+                  const mailOptions = {
+                    from: 'hotelwallet0@gmail.com',
+                    to: res.email,
+                    subject: 'Email Verification',
+                    text: `Your verification code is: ${res.verificationCode}`,
+                  };
+    
+                  transporter.sendMail(mailOptions, function (error, info) {
+                    if (error) {
+                      console.log(error);
+                      reject('Failed to send verification email');
+                    } else {
+                      console.log('Email sent: ' + info.response);
+                      resolve('Client registered successfully');
+                    }
+                  });
+                  mongoose.disconnect()
+                  resolve(res)
+                }).catch((err) => {
+                  mongoose.disconnect()
+                  reject(err)
+                })
+              }).catch((err) => {
                 mongoose.disconnect()
                 reject(err)
-              });
+              })
           }
         })
         .catch((err) => {
@@ -53,15 +85,22 @@ exports.register = (Username, Email, Password, DateBirth, IdPassport , idResp) =
         })
     })
 }
+function generateVerificationCode(length) {
+  const characters = '0123456789';
+  let code = '';
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    code += characters.charAt(randomIndex);
+  }
+  return code;
+}
 
-exports.updateOneUser=(id,Username,Email,Password,Gender,DateBirth,IdPassport)=>{
+
+exports.updateOneUser=(id,Username,DateBirth,IdPassport)=>{
     return new Promise((resolve,reject)=>{
         mongoose.connect(url).then(()=>{
             return Client.updateOne({_id : id},{
                 username:Username,
-                email:Email,
-                password:Password,
-                gender:Gender,
                 dateBirth:DateBirth,
                 idPassport:IdPassport
 
@@ -79,18 +118,28 @@ exports.updateOneUser=(id,Username,Email,Password,Gender,DateBirth,IdPassport)=>
 exports.updateOneClient=(id,Sold,nbrJour,NumChambre)=>{
     return new Promise((resolve,reject)=>{
         mongoose.connect(url).then(()=>{
-            return Client.updateOne({_id : id},{
-                solde:Sold,
-                nbrJour:nbrJour,
-                numChambre:NumChambre,
-                isActive:true
+          Client.findById(id)
+            .then((client) => {
+              const updatedSold = parseFloat(client.solde) + parseFloat(Sold)
+              return Client.updateOne({_id : id},{
+                
+                  dateEntre : Date.now(),
+                  solde:updatedSold,
+                  nbrJour:nbrJour,
+                  numChambre:NumChambre,
+                  isActive:true,
+                  log:false
 
-            }).then((done)=>{
-                mongoose.disconnect
-                resolve(done)
+              }).then((done)=>{
+                  mongoose.disconnect
+                  resolve(done)
+              }).catch((err)=>{
+                  mongoose.disconnect
+                  reject(err)
+              })
             }).catch((err)=>{
-                mongoose.disconnect
-                reject(err)
+              mongoose.disconnect
+              reject(err)
             })
         }).catch((err)=>reject(err))
     })
@@ -115,11 +164,15 @@ exports.updateclientStatus = (ClientId, isActive) => {
     })
 }
 
-exports.updateclientDate = (ClientId) => {
+
+exports.updateclientidRespo = (id , idRespo) => {
     return new Promise((resolve, reject) => {
       mongoose.connect(url)
         .then(() => {
-          Client.findByIdAndUpdate(ClientId, { dateEntre: Date.now() })
+          Client.findByIdAndUpdate(id, { 
+            idResponsableClient: idRespo,
+            log:true
+          })
             .then((updated) => {
               mongoose.disconnect()
               resolve(updated)
@@ -127,12 +180,32 @@ exports.updateclientDate = (ClientId) => {
             .catch((error) => {
               mongoose.disconnect()
               reject(error)
-            });
+            })
         })
         .catch((error) => {
           reject(error)
         })
     })
+}
+
+exports.updateclientlog = (id) => {
+  return new Promise((resolve, reject) => {
+    mongoose.connect(url)
+      .then(() => {
+        Client.findByIdAndUpdate(id, { log: true })
+          .then((updated) => {
+            mongoose.disconnect()
+            resolve(updated)
+          })
+          .catch((error) => {
+            mongoose.disconnect()
+            reject(error)
+          });
+      })
+      .catch((error) => {
+        reject(error)
+      })
+  })
 }
 
 exports.updateClientSold = (ClientId, Sold) => {
@@ -181,9 +254,36 @@ exports.getClientById = (Id) => {
     })
 }
 
+exports.getClient = (id) => {
+  return new Promise((resolve, reject) => {
+    mongoose.connect(url)
+      .then(() => {
+        Responsable.getResponsableClient(id)
+          .then((res) => {
+            const responsableIds = res.map((responsable) => responsable._id)
+
+            Client.find({ idResponsableClient: { $in: responsableIds } })
+              .then((log) => {
+                mongoose.disconnect()
+                resolve(log)
+              })
+              .catch((err) => {
+                mongoose.disconnect()
+                reject(err)
+              })
+          })
+          .catch((err) => {
+            mongoose.disconnect()
+            reject(err)
+          });
+      })
+      .catch((err) => reject(err))
+  })
+}
 exports.getAllClient=(id)=>{
     return new Promise((resolve,reject)=>{
         mongoose.connect(url).then(()=>{
+
             return Client.find({idResponsableClient : id})
 
             .then((done)=>{
@@ -198,35 +298,30 @@ exports.getAllClient=(id)=>{
 }
 
 exports.getAll=()=>{
-    return new Promise((resolve,reject)=>{
-        mongoose.connect(url).then(()=>{
-            return Client.find()
+  return new Promise((resolve,reject)=>{
+      mongoose.connect(url).then(()=>{
 
-            .then((done)=>{
-                mongoose.disconnect
-                resolve(done)
-            }).catch((err)=>{
-                mongoose.disconnect
-                reject(err)
-            })
-        }).catch((err)=>reject(err))
-    })
+          return Client.find()
+
+          .then((done)=>{
+              mongoose.disconnect
+              resolve(done)
+          }).catch((err)=>{
+              mongoose.disconnect
+              reject(err)
+          })
+      }).catch((err)=>reject(err))
+  })
 }
 
 exports.getTodayClient = (id) => {
-    const today = new Date(); // Get today's date
-    today.setHours(0, 0, 0, 0); // Set the time to 00:00:00 to compare with the dates in the database
-  
     return new Promise((resolve, reject) => {
       mongoose.connect(url)
         .then(() => {
           Client.find({
-            dateEntre: {
-              $gte: today, // Greater than or equal to today's date
-              $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000) // Less than tomorrow's date
-            },
             isActive: false,
-            idResponsableClient: id
+            idResponsableClient: id,
+            log:true
           })
             .then((clients) => {
               mongoose.disconnect()
@@ -278,30 +373,5 @@ exports.searchClientsByUsername = (username) => {
     });
 }
 
-exports.resetClientPassword = (clientId, newPassword) => {
-    return new Promise((resolve, reject) => {
-        mongoose.connect(url)
-        .then(() => {
-            bcrypt.hash(newPassword, 10)
-            .then((hashPassword) => {
-                Client.findByIdAndUpdate(clientId, { password: hashPassword }, { new: true })
-                    .then((updatedClient) => {
-                        mongoose.disconnect()
-                        resolve(updatedClient)
-                    })
-                    .catch((error) => {
-                        mongoose.disconnect()
-                        reject(error)
-                    });
-            })
-                .catch((error) => {
-                    mongoose.disconnect()
-                    reject(error)
-                });
-            })
-            .catch((error) => {
-                reject(error)
-            })
-        })
-}
+
 

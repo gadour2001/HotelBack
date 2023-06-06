@@ -32,7 +32,7 @@ route.put('/update/status/:id', (req, res) => {
 //****************************** */
 route.delete('/delete/:id',(req,res)=>{
     commandes.deleteOneCommande(req.params.id)
-    .then((commande)=>res.status(200).json({msg:"deleted"}))
+    .then((commande)=>res.status(200).json({msg:"deleted"})) 
     .catch((err)=>res.status(400).json({error:err}))
 })
 
@@ -43,9 +43,16 @@ route.put('/put/:id',(req,res) =>{
 })
 //****************************** */
 route.post('/post',(req,res) =>{
-    commandes.postNewCommande(req.body.prixTotal,req.body.idClient,req.body.idService,req.body.numtable)
+    commandes.postNewCommande(req.body.prixTotal,req.body.idClient,req.body.idService,req.body.numtable,req.body.lignesCommandes)
     .then((commande)=>res.status(200).json({commande:commande,msg:"added"}))
     .catch((err)=>console.log(err))
 })
+
+route.get('/getCommande/:id',(req,res)=>{
+    commandes.getOrderById(req.params.id)
+    .then((commande)=>res.status(200).json(commande=commande))
+    .catch((err)=>console.log(err))
+})
+
 
 module.exports = route

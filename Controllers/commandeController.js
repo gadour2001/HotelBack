@@ -1,31 +1,65 @@
 const Commande = require ('../models/commande')
-const LignrCommande = require ('../models/ligneCommande')
+const LigneCommande = require ('../models/ligneCommande')
+const Ligne = require ('../Controllers/ligneCommandeController')
 const mongoose = require('mongoose')
+const product = require('../Controllers/materialProductController')
+const client = require('../models/client')
 require('dotenv').config()
 
 const url = process.env.URL  
 
-exports.postNewCommande=(PrixTotal,IdClient,IdService,numtable)=>{
-    return new Promise((resolve,reject)=>{
-        mongoose.connect(url).then(()=>{
-            
-                let new_commande = Commande({
-                    date:Date.now(),
-                    prixTotal:PrixTotal,
-                    etat:'en attente',
-                    idClient:IdClient,
-                    idService:IdService,
-                    numtable:numtable
+exports.postNewCommande = (PrixTotal, IdClient, IdService, numtable, LigneCommandes) => {
+    return mongoose.connect(url)
+      .then(() => {
+        let new_commande = Commande({
+          date: Date.now(),
+          prixTotal: PrixTotal,
+          etat: 'en attente',
+          idClient: IdClient,
+          idService: IdService,
+          numtable: numtable
+        })
+        return client.findById(IdClient).then((clientt) => {
+            return  client.findByIdAndUpdate(IdClient , {solde : parseFloat(clientt.solde) - parseFloat(PrixTotal)})
+            .then(() => {
+                return new_commande.save()
+                .then((done) => {
+                    const saveLigneCommandes = LigneCommandes.map((ligne) => {
+                    let new_ligneCommande = LigneCommande({
+                        quantite: ligne.quantity,
+                        idCommande: done._id,
+                        idProduct: ligne._id
+                    });
+        
+                    return new_ligneCommande.save()
+                        .then(() => {
+                        return materialProduct.findById(ligne._id)
+                            .then((res) => {
+                            if (res.quantity !== -1) {
+                                return materialProduct.updateOne({ _id: ligne._id }, {
+                                quantity: parseInt(res.quantity) - parseInt(ligne.quantity)
+                                });
+                            }
+                            });
+                        });
+                    });
+        
+                    return Promise.all(saveLigneCommandes)
+                    .then(() => {
+                        mongoose.disconnect()
+                        console.log('Commande saved successfully')
+                    });
                 })
-                new_commande.save().then((done)=>{ 
-                    mongoose.disconnect
-                    resolve(done)
-                }).catch((err)=>{
-                    mongoose.disconnect
-                    reject(err)
-                }) 
-        }).catch((err)=>reject(err))
+                .catch((err) => {
+                    mongoose.disconnect()
+                    throw err
+                });
+            })
+      .catch((err) => {
+        throw err
+      })
     })
+  })
 }
 
 // getCommande(idClient)
@@ -78,10 +112,10 @@ exports.getOrderByServiceId = (id) => {
             reject(error);
           });
       }).catch((error) => {
-        reject(`Error fetching client: ${error.message}`);
-      });
-    });
-  };
+        reject(`Error fetching client: ${error.message}`)
+      })
+    })
+  }
 
 exports.getOrderById = (id) => {
     return new Promise((resolve, reject) => {

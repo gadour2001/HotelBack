@@ -1,0 +1,12 @@
+const route = require('express').Router()
+const ServiceProduct = require('../Controllers/ServiceProductController')
+
+
+route.post('/post',(req,res) =>{
+    ServiceProduct.postNewServiceProduct(req.body.name,req.body.description,req.body.prix,req.body.image,req.body.idCategory,req.body.duree,req.body.nbPlace)
+    .then((product)=>res.status(200).json({product:product,msg:"added"}))
+    .catch((err)=>console.log(err))
+})
+
+
+module.exports = route 

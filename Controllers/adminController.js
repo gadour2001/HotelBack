@@ -1,4 +1,6 @@
 const Admin = require('../models/Admin')
+const Client = require('../models/client')
+const ResponsableClient = require('../models/responsableClient')
 const bcrypt = require('bcrypt')
 const mongoose = require('mongoose')
 require('dotenv').config()
@@ -63,6 +65,30 @@ exports.getAllAdmin=()=>{
             .then((Admin)=>{
                 mongoose.disconnect
                 resolve(Admin)
+            }).catch((err)=>{
+                mongoose.disconnect
+                reject(err)
+            })
+        }).catch((err)=>reject(err))
+    })
+}
+
+exports.getHotelName=(id)=>{
+    return new Promise((resolve,reject)=>{
+        mongoose.connect(url).then(()=>{
+            return Client.findById(id).then((res) => {
+                ResponsableClient.findById(res.idResponsableClient).then((res) => {
+                    Admin.findById(res.idAdmin).then((res) => {
+                        mongoose.disconnect
+                        resolve(res.hotelName)
+                    }).catch((err)=>{
+                        mongoose.disconnect
+                        reject(err)
+                    })
+                }).catch((err)=>{
+                    mongoose.disconnect
+                    reject(err)
+                })
             }).catch((err)=>{
                 mongoose.disconnect
                 reject(err)

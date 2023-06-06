@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const user = require('./user');
+const { boolean } = require('joi');
 mongoose.set('strictQuery', false)
 
 let clientSchema = mongoose.Schema({
@@ -12,6 +13,8 @@ let clientSchema = mongoose.Schema({
         idResponsableClient : {
           type: mongoose.Schema.Types.ObjectId,
           ref : 'responsableClient'
-        }
+        },
+        verificationCode:String,
+        log:Boolean
 })
 module.exports = user.discriminator('client', clientSchema);

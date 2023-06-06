@@ -41,6 +41,22 @@ exports.register=(Username,Email,Password,DateBirth,IdService,IdAdmin)=>{
     })
 }
 
+exports.getResponsableService=(id)=>{ 
+    return new Promise((resolve,reject)=>{
+        mongoose.connect(url).then(()=>{
+            return responsableService.find({idAdmin:id})
+            .then((responsable)=>{
+                mongoose.disconnect
+                resolve(responsable)
+            }).catch((err)=>{
+                mongoose.disconnect
+                reject(err)
+            })
+        }).catch((err)=>reject(err))
+    })
+}
+
+
 exports.updateOneResponsable=(id,Username,Email,Password,DateBirth,IdService)=>{
     return new Promise((resolve,reject)=>{
         mongoose.connect(url).then(()=>{

@@ -1,6 +1,5 @@
 const LigneCommande = require ('../models/ligneCommande')
 const Commande = require ('../models/commande')
-const Command = require ('../Controllers/commandeController')
 const MaterialProduct = require ('../models/materialProduct')
 const mongoose = require('mongoose')
 mongoose.set('strictQuery', false)
@@ -74,13 +73,10 @@ exports.deleteOneLigneCommande = (id) => {
                 const commandeId = deletedLigneCommande.idCommande
                 MaterialProduct.findById(ProductId)
                   .then((materialProduct) => {
-                    console.log(materialProduct);
                     if (!materialProduct) {
                       mongoose.disconnect();
                       reject("MaterialProduct not found"); 
                     } else {
-                        console.log(materialProduct.prix);
-                        console.log(deletedLigneCommande.quantite);
                         const ligneCommandePrice = materialProduct.prix * deletedLigneCommande.quantite;
                       LigneCommande.deleteOne({ _id: id })
                         .then(() => {

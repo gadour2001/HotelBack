@@ -40,6 +40,22 @@ exports.register=(Username,Email,Password,DateBirth,IdAdmin)=>{
     })
 }
 
+
+exports.getResponsableClient=(id)=>{ 
+    return new Promise((resolve,reject)=>{
+        mongoose.connect(url).then(()=>{
+            return responsableClient.find({idAdmin:id})
+            .then((responsable)=>{
+                mongoose.disconnect
+                resolve(responsable)
+            }).catch((err)=>{
+                mongoose.disconnect
+                reject(err)
+            })
+        }).catch((err)=>reject(err))
+    })
+}
+
 exports.updateOneResponsableClient=(id,Username,Email,Password,DateBirth)=>{
     return new Promise((resolve,reject)=>{
         mongoose.connect(url).then(()=>{

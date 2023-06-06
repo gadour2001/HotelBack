@@ -1,5 +1,4 @@
 const route = require('express').Router()
-const jwt = require('jsonwebtoken')
 const responsableService = require('../Controllers/responsableServiceController')
 require('dotenv').config()
 
@@ -19,5 +18,10 @@ route.put('/put/:id',(req,res) =>{
     .catch((err)=>res.status(400).json({error:err}))
 })
 
+route.get('/ResponsableService/:id',(req,res)=>{
+    responsableService.getResponsableService(req.params.id)
+    .then((responsable)=>res.status(200).json(responsable = responsable ))
+    .catch((err)=>res.status(400).json({error:err}))
+})
 
 module.exports = route

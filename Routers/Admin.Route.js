@@ -31,6 +31,10 @@ route.put('/put/:id',(req,res)=>{
     .then((admin)=>res.status(200).json(admin=admin))
     .catch((err)=>res.status(400).json({error:err}))
 })
-
+route.get('/getHotelName/:id',(req,res)=>{
+    Admin.getHotelName(req.params.id)
+    .then((admin)=>res.status(200).json(admin=admin))
+    .catch((err)=>res.status(400).json({error:err}))
+})
 
 module.exports = route

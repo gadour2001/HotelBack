@@ -10,7 +10,6 @@ let serviceSchema = mongoose.Schema({
         type : mongoose.Schema.Types.ObjectId,
         ref :'Admin'
     }
-
 }) 
 
 module.exports = Service = mongoose.model('service',serviceSchema)

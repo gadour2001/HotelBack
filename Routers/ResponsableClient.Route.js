@@ -12,6 +12,11 @@ route.post('/register',(req,res) =>{
     .catch((err)=>res.status(400).json({error:err}))
 })
 
+route.get('/ResponsableClient/:id',(req,res)=>{
+    responasbleClients.getResponsableClient(req.params.id)
+    .then((responsable)=>res.status(200).json(responsable = responsable ))
+    .catch((err)=>res.status(400).json({error:err}))
+})
 //****************************** */
 route.put('/put/:id',(req,res) =>{
     responasbleClients.updateOneResponsableClient(req.params.id,req.body.username,req.body.email,req.body.password,req.body.dateBirth)

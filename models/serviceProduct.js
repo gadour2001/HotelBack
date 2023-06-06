@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose'); 
 const product = require('./product');
 mongoose.set('strictQuery', false)
 

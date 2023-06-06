@@ -92,6 +92,22 @@ exports.getAllService=(id)=>{
         }).catch((err)=>reject(err))
     })
 }
+
+exports.getAllServiceActive=(id)=>{
+    return new Promise((resolve,reject)=>{
+        mongoose.connect(url).then(()=>{
+            return Service.find({idAdmin:id , isActive : true})
+
+            .then((done)=>{
+                mongoose.disconnect
+                resolve(done)
+            }).catch((err)=>{
+                mongoose.disconnect
+                reject(err)
+            })
+        }).catch((err)=>reject(err))
+    })
+}
 exports.getServicetById=(id)=>{
     return new Promise((resolve,reject)=>{
         mongoose.connect(url).then(()=>{

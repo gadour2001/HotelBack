@@ -33,6 +33,11 @@ route.get('/admin/:id',(req,res)=>{
     .then((services)=>res.status(200).json(services = services))
     .catch((err)=>res.status(400).json({error:err}))
 }) 
+route.get('/adminActive/:id',(req,res)=>{
+    services.getAllServiceActive(req.params.id) 
+    .then((services)=>res.status(200).json(services = services))
+    .catch((err)=>res.status(400).json({error:err}))
+}) 
 //****************************** */
 route.get('/get/:id',(req,res)=>{
     services.getServicetById(req.params.id)

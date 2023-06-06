@@ -11,12 +11,15 @@ const materialProductRoute = require('./Routers/materialProduct.Route');
 const commandeRoute = require('./Routers/Commande.Route');
 const serviceRoute = require('./Routers/Service.Route');
 const ligneCommandeRoute = require('./Routers/ligneCommande.Route');
-const ligneReservationRoute = require('./Routers/ligneCommande.Route');
+const ReservationRoute = require('./Routers/Reservation.Route');
 const categoryRoute = require('./Routers/Category.Route');
 const responsableServiceRoute = require('./Routers/responsableService .Router');
 const responsableclientRoute = require('./Routers/ResponsableClient.Route');
 const adminRoute = require('./Routers/Admin.Route');
 const productRoute = require('./Routers/Product.Route');
+const log = require('./Routers/log.Router');
+const Seance = require('./Routers/Seance.Route');
+const serviceProductRoute = require('./Routers/ServiceProduct.Route');
 
 
 app.use(express.json());
@@ -48,6 +51,13 @@ io.on("connection", (socket) => {
     socket.on("valid_Custom", () => {
       socket.broadcast.emit("valide_Custom") 
     })
+    socket.on("add_Reservation", () => {
+      socket.broadcast.emit("add_Reservation") 
+    })
+    socket.on("Edit_Reservation", () => {
+      socket.broadcast.emit("Edit_Reservation") 
+    })
+    
 
 });
 
@@ -66,11 +76,14 @@ app.use('/materialProduct', materialProductRoute)
 app.use('/commande', commandeRoute)
 app.use('/service', serviceRoute)
 app.use('/ligneCommande', ligneCommandeRoute)
-app.use('/ligneReservation', ligneReservationRoute)
+app.use('/reservation', ReservationRoute)
 app.use('/category', categoryRoute)
 app.use('/responsableService', responsableServiceRoute)
 app.use('/responsableClient',responsableclientRoute)
 app.use('/admin', adminRoute)
+app.use('/log', log)
+app.use('/seance', Seance)
+app.use('/serviceProduct', serviceProductRoute)
 
 
 server.listen(5001,()=> console.log('server socket run !'))

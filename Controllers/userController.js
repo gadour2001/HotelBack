@@ -17,11 +17,11 @@ exports.register = (Username, Email, Password, DateBirth) => {
     return new Promise((resolve, reject) => {
         mongoose.connect(url)
         .then(() => {
-            return SuperAdmin.findOne({ email: Email })
+            return User.findOne({ email: Email })
         }).then((doc) => {
               if (doc) {
                 mongoose.disconnect();
-                reject('This client already exists');
+                reject('This email already exists');
               } else {
                 bcrypt
                   .hash(Password, 10)
@@ -37,7 +37,7 @@ exports.register = (Username, Email, Password, DateBirth) => {
                   })
                   .then(() => {
                     mongoose.disconnect();
-                    resolve('Client registered successfully');
+                    resolve('Super Admin registered successfully');
                   })
                   .catch((err) => {
                     mongoose.disconnect();
@@ -51,65 +51,6 @@ exports.register = (Username, Email, Password, DateBirth) => {
         })
     }
 
-const sendResetPasswordMail = (username, email, token) => {
-    return new Promise((resolve, reject) => {
-        mongoose.connect(url).then(() => {
-            const transporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
-            port: 587,
-            secure: false,
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASSWORD
-            }
-        });
-
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: email,
-            subject: 'Reset Password',
-            html: `<p>Hi ${username}, please click the link to reset your password: <a href="http://localhost:5000/user/reset-password?token=${token}">Reset Password</a></p>`
-        };
-
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                mongoose.disconnect()
-                reject(error);
-            } else {
-                mongoose.disconnect()
-                resolve(info.response)
-            }
-        })
-        }).catch((err) => {
-            reject(err)
-        })
-    })
-}
-
-exports.forget_password = (email) => {
-    return new Promise((resolve, reject) => {
-        mongoose.connect(url).then(() => {
-            return User.findOne({ email: email })
-        })
-        .then((user) => {
-        if (user) {
-            const randomString = randomstring.generate();
-            return User.updateOne({ email: email }, { $set: { token: randomString } })
-        } else {
-            throw new Error('User not found')
-        }
-        })
-        .then((userData) => {
-            return sendResetPasswordMail(userData.username, userData.email, userData.randomString)
-        })
-        .then((response) => {
-            resolve({ success: true, msg: 'Please check your email and reset your password' })
-        })
-        .catch((error) => {
-            reject({ success: false, msg: error.message })
-        })
-    })
-}
 var privateKey = process.env.PRIVATE_KEY
 
 exports.login=(Email,Password)=>{
@@ -120,7 +61,7 @@ exports.login=(Email,Password)=>{
         }).then((user)=>{
             if(!user){
                 mongoose.disconnect()
-                reject("we don't have this email in our database")
+                reject("invalide email or password")
             }else{
                 bcrypt.compare(Password,user.password).then((same)=>{
                     if(same){
@@ -129,7 +70,7 @@ exports.login=(Email,Password)=>{
                         resolve(token)
                     }else{
                         mongoose.disconnect()
-                        reject('invalide password')
+                        reject('invalide email or password')
                     }
                 }).catch((err)=>{
                     mongoose.disconnect()
@@ -139,49 +80,156 @@ exports.login=(Email,Password)=>{
         })
     })
 }
-exports.getAllUser=()=>{
-    return new Promise((resolve,reject)=>{
-        mongoose.connect(url).then(()=>{
-            return User.find()
-            .then((done)=>{
-                mongoose.disconnect
-                resolve(done)
-            }).catch((err)=>{
-                mongoose.disconnect
-                reject(err)
-            })
-        }).catch((err)=>reject(err))
-    })
-}
-exports.getOneUser=(id)=>{
-    return new Promise((resolve,reject)=>{
-        mongoose.connect(url).then(()=>{
-            return User.findById(id)
-            .then((user)=>{
-                mongoose.disconnect
-                resolve(user)
-            }).catch((err)=>{
-                mongoose.disconnect
-                reject(err)
-            })
-        }).catch((err)=>reject(err))
-    })
-}
 
-exports.getResponsable=()=>{ 
+exports.getOneUser=(id)=>{
+  return new Promise((resolve,reject)=>{
+      mongoose.connect(url).then(()=>{
+          return User.findById(id)
+          .then((user)=>{
+              mongoose.disconnect
+              resolve(user)
+          }).catch((err)=>{
+              mongoose.disconnect
+              reject(err)
+          })
+      }).catch((err)=>reject(err))
+  })
+} 
+
+exports.getResponsables=(id)=>{
     return new Promise((resolve,reject)=>{
         mongoose.connect(url).then(()=>{
-            return User.find({role : ['responsableClient','responsableService']})
-            .then((user)=>{
+            return ResponsableClient.find({idAdmin:id })
+            .then((responsableClient)=>{
+              ResponsableService.find({idAdmin:id })
+              .then((responsableService)=>{
                 mongoose.disconnect
-                resolve(user)
+                resolve({responsableClient,responsableService})
+              }).catch((err)=>{
+                mongoose.disconnect
+                reject(err)
+              })
             }).catch((err)=>{
                 mongoose.disconnect
                 reject(err)
             })
         }).catch((err)=>reject(err))
     })
+} 
+
+exports.resetClientPassword = (Id, newPassword, oldPassword) => {
+    return new Promise((resolve, reject) => {
+      mongoose.connect(url)
+        .then(() => {
+          User.findById(Id)
+            .then((res) => {
+              if (!res) {
+                mongoose.disconnect();
+                reject('User does not exist');
+              } else {
+                bcrypt.compare(oldPassword, res.password)
+                  .then((isMatch) => {
+                    if (!isMatch) {
+                      mongoose.disconnect();
+                      reject('Incorrect old password');
+                    } else {
+                      bcrypt.hash(newPassword, 10)
+                        .then((hashPassword) => {
+                          User.findByIdAndUpdate(Id, { password: hashPassword }, { new: true })
+                            .then((updatedClient) => {
+                              mongoose.disconnect();
+                              resolve(updatedClient);
+                            })
+                            .catch((error) => {
+                              mongoose.disconnect();
+                              reject(error);
+                            });
+                        })
+                        .catch((error) => {
+                          mongoose.disconnect();
+                          reject(error);
+                        });
+                    }
+                  })
+                  .catch((error) => {
+                    mongoose.disconnect();
+                    reject(error);
+                  });
+              }
+            })
+            .catch((error) => {
+              mongoose.disconnect();
+              reject(error);
+            });
+        });
+    });
+  };
+
+  exports.forgotPassword = (Email) => {
+    return new Promise((resolve, reject) => {
+      mongoose
+          .connect(url)
+          .then(() => {
+            return User.findOne({ email: Email })
+          })
+          .then((doc) => {
+            if (doc) {
+              const NewPassword = generatePassword(8);
+              const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                  user: 'hotelwallet0@gmail.com',
+                  pass: 'keguwbhjigdwzqnx',
+                },
+              });
+              const mailOptions = {
+                from: 'hotelwallet0@gmail.com',
+                to: Email,
+                subject: 'Password Reset Request',
+                text: 'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
+                'New password : ' + NewPassword + '\n\n' +
+                'If you did not request this, please ignore this email and your password will remain unchanged.\n',
+                }
+                transporter.sendMail(mailOptions, (error, info) => {
+                  if (error) {
+                    console.log(error)
+                    reject(error)
+                  } else {
+                    console.log('Email sent: ' + info.response)
+                    bcrypt.hash(NewPassword, 10)
+                    .then((hashPassword) => {
+                        User.updateOne({email:Email} , { password: hashPassword }, { new: true })
+                      .then((updatedClient) => {
+                          mongoose.disconnect()
+                          resolve(updatedClient)
+                      })
+                      .catch((error) => {
+                          mongoose.disconnect()
+                          reject(error)
+                      })
+                    }).catch((err) => {
+                        mongoose.disconnect()
+                        reject(error)
+                    })
+                  }
+                })
+            } else {
+              mongoose.disconnect()
+              reject('This client dose not exists')
+            }
+    })              
+  })
 }
+  function generatePassword(length) {
+    const characters = '0123456789AZERTYUIOPMLKJHGFDSQWXCVBN+-azertyuiopmlkjhgfdsqwxcvbn';
+    let code = '';
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      code += characters.charAt(randomIndex);
+    }
+    return code;
+  }
+
 exports.deleteOneUser=(id)=>{
     return new Promise((resolve,reject)=>{
         mongoose.connect(url).then(()=>{
