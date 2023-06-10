@@ -13,7 +13,7 @@ route.post('/register',(req,res) =>{
 })
 //****************************** */
 route.put('/put/:id',(req,res) =>{
-    responsableService.updateOneResponsable(req.params.id,req.body.username,req.body.email,req.body.password,req.body.gender,req.body.dateBirth,req.body.idService)
+    responsableService.updateOneResponsable(req.params.id,req.body.username,req.body.email,req.body.dateBirth,req.body.idService)
     .then((user)=>res.status(200).json({user:user,msg:"updated"}))
     .catch((err)=>res.status(400).json({error:err}))
 })

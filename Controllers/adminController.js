@@ -96,6 +96,39 @@ exports.getHotelName=(id)=>{
         }).catch((err)=>reject(err))
     })
 }
+exports.getHotelName = (id) => {
+    return new Promise((resolve, reject) => {
+      mongoose
+        .connect(url)
+        .then(() => {
+          Client.findById(id)
+            .then((client) => {
+              ResponsableClient.findById(client.idResponsableClient)
+                .then((responsableClient) => {
+                  Admin.findById(responsableClient.idAdmin)
+                    .then((admin) => {
+                      mongoose.disconnect();
+                      resolve(admin.hotelName);
+                    })
+                    .catch((err) => {
+                      mongoose.disconnect();
+                      reject(err);
+                    });
+                })
+                .catch((err) => {
+                  mongoose.disconnect();
+                  reject(err);
+                });
+            })
+            .catch((err) => {
+              mongoose.disconnect();
+              reject(err);
+            });
+        })
+        .catch((err) => reject(err));
+    });
+  };
+  
 
 exports.deleteOneAdmin=(id)=>{
     return new Promise((resolve,reject)=>{

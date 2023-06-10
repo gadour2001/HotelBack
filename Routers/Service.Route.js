@@ -47,25 +47,25 @@ route.get('/get/:id',(req,res)=>{
 //****************************** */
 route.delete('/delete/:id', (req, res) => {
     services.deleteService(req.params.id)
-    .then((service) => res.status(200).json({ service, msg: "Service deleted successfully" }))
+    .then((service) => res.status(200).json({msg: "Your file has been deleted." }))
     .catch((error) => console.log(error));
 })
 //****************************** */
 route.put('/put/:id',(req,res) =>{
     services.updateOneService(req.params.id,req.body.name,req.body.description,req.body.image)
-    .then((service)=>res.status(200).json({msg:"updated"}))
+    .then((service)=>res.status(200).json({msg:"Your service has been updated."}))
     .catch((err)=>res.status(400).json({error:err}))
 })
 //****************************** */
 route.post('/post',(req,res) =>{
     services.postNewService(req.body.name,req.body.description,req.body.image,req.body.idAdmin)
-    .then((service)=>res.status(200).json({msg:"added"}))
+    .then((service)=>res.status(200).json({msg:"Your service has been added." , service : service}))
     .catch((err)=>res.status(400).json({error:err}))
 })
 //****************************** */
 route.put('/putStatus/:id',(req,res) =>{
     services.updateServiceStatus(req.params.id,req.body.isActive)
-    .then((service)=>res.status(200).json({msg:"updated"}))
+    .then((service)=>res.status(200).json({msg:"service updated" , service : service}))
     .catch((err)=>res.status(400).json({error:err}))
 })
 

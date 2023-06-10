@@ -1,11 +1,12 @@
 const Category = require ('../models/category')
+const materialProduct = require('../models/materialProduct')
 const Product = require('../models/product')
 const mongoose = require('mongoose')
 require('dotenv').config()
 
 var url = process.env.URL 
 
-exports.postNewCategory=(Name,Description,Image,IdService)=>{
+exports.postNewCategory=(Name,Description,Image,IdService,Type)=>{
     return new Promise((resolve,reject)=>{
         mongoose.connect(url).then(()=>{
 
@@ -13,7 +14,8 @@ exports.postNewCategory=(Name,Description,Image,IdService)=>{
                     name:Name,
                     description:Description,
                     image:Image,
-                    idService:IdService
+                    idService:IdService,
+                    type:Type
                 })
                 new_category.save().then((done)=>{
                     mongoose.disconnect
@@ -89,15 +91,14 @@ exports.getCategoryById=(id)=>{
         }).catch((err)=>reject(err))
     })
 }
-// deleteCategorybyidService(id)
+
 exports.deleteOneCategory=(id)=>{
     return new Promise((resolve,reject)=>{
         mongoose.connect(url).then(()=>{
             return Category.findByIdAndDelete(id)
 
             .then((done)=>{
-                mongoose.disconnect
-                resolve(done)
+                Product.deleteMany({idCategorie : id})
             }).catch((err)=>{
                 mongoose.disconnect
                 reject(err)
@@ -105,49 +106,15 @@ exports.deleteOneCategory=(id)=>{
         }).catch((err)=>reject(err))
     })
 }
-// delete a category withh all products inside this category 
-exports.deleteCategorywithProduct = (id) => {
-    return new Promise((resolve, reject) => {
-        mongoose.connect(url)
-        .then(() => {
-            Product.find({ idCategorie: id })
-            .then((products) => {
-               (products.length> 0 ? products.deleteMany() : "")
-                .then(() => {
-                    
-                })
-                .catch((error) => { 
-                    mongoose.disconnect();
-                    reject(error);
-                });
-            })
-            .catch((error) => {
-                mongoose.disconnect();
-                reject(error);
-            });
-            Category.findByIdAndDelete(id)
-            .then(() => {
-                mongoose.disconnect();
-                resolve('Category deleted');
-            })
-            .catch((error) => {
-                mongoose.disconnect();
-                reject(error);
-            });
-        })
-        .catch((error) => {
-            reject(`Error connecting to database: ${error.message}`);
-        });
-    });
-}
 
-exports.updateOneCategory=(id,Name,Description,Image)=>{
+exports.updateOneCategory=(id,Name,Description,Image,Type)=>{
     return new Promise((resolve,reject)=>{
         mongoose.connect(url).then(()=>{
             return Category.updateOne({_id : id},{
                 name:Name,
                 description:Description,
-                image:Image
+                image:Image,
+                type:Type
 
             }).then((done)=>{
                 mongoose.disconnect

@@ -1,5 +1,4 @@
 const ServiceProduct = require('../models/serviceProduct')
-const Horaire = require ('../models/Horaire')
 const Seance = require('../models/Seance')
 const mongoose = require('mongoose')
 require('dotenv').config()
@@ -20,23 +19,23 @@ exports.postNewServiceProduct=(Name,Description,Prix,Image,IdCategory,duree,nbPl
                 nbPlace:nbPlace,
             })
             new_product.save().then((product)=>{
-                        let X = 8
-                        while (X <= 18){
-                            console.log(X);
-                            let new_seance = Seance({
-                                time: setTime(X),
-                                etat:true,
-                                idServiceProduct:product._id,
-                            })
-                            new_seance.save().then((done)=>{
-                                console.log('mrgll')
-                                
-                            }).catch((err)=>{
-                                console.log(err)
-                            })
-                            X = X + duree
-                        }
-                        resolve('fini')
+                let X = 8
+                while (X <= 18){
+                    console.log(X);
+                    let new_seance = Seance({
+                        time: setTime(X),
+                        etat:true,
+                        idServiceProduct:product._id,
+                    })
+                    new_seance.save().then((done)=>{
+                        console.log('mrgll')
+                        
+                    }).catch((err)=>{
+                        console.log(err)
+                    })
+                    X = X + duree
+                }
+                resolve(product)
             }).catch((err)=>{
                 mongoose.disconnect()
                 reject(err)

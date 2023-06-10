@@ -1,5 +1,6 @@
 const Reservation = require ('../models/Reservation')
 const mongoose = require('mongoose')
+const client = require('../models/client')
 mongoose.set('strictQuery', false)
 require('dotenv').config()
 
@@ -10,7 +11,7 @@ exports.postNewReservation=(PrixTotal, IdClient, IdService,Horaire,NbPlace,idPro
         mongoose.connect(url).then(()=>{
 
                 let new_Reservation = Reservation({
-                    date: Date.now(),
+                    date:  (Date.now()+(60*60*1000)),
                     prixTotal: PrixTotal,
                     etat: 'en attente',
                     idClient: IdClient,
@@ -20,14 +21,44 @@ exports.postNewReservation=(PrixTotal, IdClient, IdService,Horaire,NbPlace,idPro
                     horaire:Horaire
                 })
                 new_Reservation.save().then((done)=>{
-                    mongoose.disconnect
-                    resolve(done)
+                    return client.findById(IdClient).then((clientt) => {
+                        return  client.findByIdAndUpdate(IdClient , {solde : parseFloat(clientt.solde) - parseFloat(PrixTotal)})
+                        .then(() => {
+                            mongoose.disconnect()
+                            resolve(done)
+                        }).catch((err)=>{
+                            mongoose.disconnect
+                            reject(err)
+                        })
                 }).catch((err)=>{
                     mongoose.disconnect
                     reject(err)
                 })
+        }).catch((err)=>{
+            mongoose.disconnect
+            reject(err)
         })
     }).catch((err)=>reject(err))
+})
+}
+
+exports.updateReservationStatus = (Id, newStatus) => {
+    return new Promise((resolve, reject) => {
+        mongoose.connect(url)
+        .then(() => {
+            Reservation.findByIdAndUpdate(Id, { etat: newStatus }, { new: true })
+            .then((reservation) => {
+                mongoose.disconnect()
+                resolve(reservation)
+            })
+            .catch((error) => {
+                mongoose.disconnect()
+                reject(error)
+            })
+        }).catch((error) => {
+            reject(`Error connecting to database: ${error.message}`)
+        })
+    })
 }
 
 exports.deleteOneReservation=(id)=>{
@@ -69,16 +100,35 @@ exports.getReservationByClientId = (id) => {
     return new Promise((resolve, reject) => {
         mongoose.connect(url).
         then(() => {
-            Reservation.find({idClient:id , etat:[ "fini" , "en attente"]}).sort({ date: -1 }) .then((reservation) => {
-                mongoose.disconnect();
-                resolve(reservation);
+            Reservation.find({idClient:id , etat:[ "fini" , "en attente"]}).sort({ date: -1 }).populate('idServiceProduct')
+            .then((reservation) => {
+                mongoose.disconnect()
+                resolve(reservation)
             }).catch((error) => {
-                mongoose.disconnect();
-                reject(error);
+                mongoose.disconnect()
+                reject(error)
             });
         }).catch((error) => {
             reject(`Error fetching client: ${error.message}`);
-        });
+        })
+    })
+}
+
+exports.getAllReservation = () => {
+    return new Promise((resolve, reject) => {
+        mongoose.connect(url).
+        then(() => {
+            Reservation.find({etat : "en attente"})
+            .then((reservation) => {
+                mongoose.disconnect()
+                resolve(reservation)
+            }).catch((error) => {
+                mongoose.disconnect()
+                reject(error)
+            });
+        }).catch((error) => {
+            reject(`Error fetching client: ${error.message}`);
+        })
     })
 }
 
@@ -86,7 +136,8 @@ exports.getReservationByServiceIdfini = (id) => {
     return new Promise((resolve, reject) => {
         mongoose.connect(url).then(() => {
 
-            return Reservation.find({idService:id , etat:["fini" , "annuler"]}).sort({ date: -1 }) .then((reservation) => {
+            return Reservation.find({idService:id , etat:["fini" , "annuler"]}).sort({ date: -1 })
+            .then((reservation) => {
                 resolve(reservation)
                 mongoose.disconnect() 
             }).catch((error) => {
@@ -100,21 +151,21 @@ exports.getReservationByServiceIdfini = (id) => {
 }
 
 // getCommande(idService)
-exports.getReservationByServiceId = (id) => {
+
+  exports.getReservationByServiceId = (id) => {
     return new Promise((resolve, reject) => {
-      mongoose.connect(url).then(() => {
-        return Reservation.find({ idService: id, etat: ["en attente"] })
-          .sort({ date: 1 }) 
-          .then((reservation) => {
-            mongoose.disconnect();
-            resolve(reservation);
-          })
-          .catch((error) => {
-            mongoose.disconnect();
-            reject(error);
-          });
-      }).catch((error) => {
-        reject(`Error fetching client: ${error.message}`)
-      })
+        mongoose.connect(url).
+        then(() => {
+            Reservation.find({idService:id , etat:"en attente"}).sort({ date: -1 })
+            .then((reservation) => {
+                mongoose.disconnect();
+                resolve(reservation);
+            }).catch((error) => {
+                mongoose.disconnect();
+                reject(error);
+            });
+        }).catch((error) => {
+            reject(`Error fetching client: ${error.message}`);
+        });
     })
-  }
+}

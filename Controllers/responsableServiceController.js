@@ -57,13 +57,12 @@ exports.getResponsableService=(id)=>{
 }
 
 
-exports.updateOneResponsable=(id,Username,Email,Password,DateBirth,IdService)=>{
+exports.updateOneResponsable=(id,Username,Email,DateBirth,IdService)=>{
     return new Promise((resolve,reject)=>{
         mongoose.connect(url).then(()=>{
             return responsableService.updateOne({_id : id},{
                 username:Username,
                 email:Email,
-                password:Password,
                 dateBirth:DateBirth,
                 idService:IdService
 

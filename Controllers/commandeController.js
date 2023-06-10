@@ -12,7 +12,7 @@ exports.postNewCommande = (PrixTotal, IdClient, IdService, numtable, LigneComman
     return mongoose.connect(url)
       .then(() => {
         let new_commande = Commande({
-          date: Date.now(),
+          date:  (Date.now()+(60*60*1000)),
           prixTotal: PrixTotal,
           etat: 'en attente',
           idClient: IdClient,
@@ -160,16 +160,16 @@ exports.deleteOneCommande=(id)=>{
             return Commande.findByIdAndDelete(id)
 
             .then((done)=>{
-                LignrCommande.deleteMany({idCommande : id})
+                LigneCommande.deleteMany({idCommande : id})
                 .then((res) => {
                     mongoose.disconnect()
                     resolve(res)
                 }).catch((err)=>{
-                    mongoose.disconnect
+                    mongoose.disconnect()
                     reject(err)
                 })
             }).catch((err)=>{
-                mongoose.disconnect
+                mongoose.disconnect()
                 reject(err)
             })
         }).catch((err)=>reject(err))

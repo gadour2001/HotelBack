@@ -2,9 +2,9 @@ const route = require('express').Router()
 const Seance = require('../Controllers/SeanceController')
 
 
-route.put('/get/:id', (req,res)=>{ 
-    Seance.getSeance(req.params.id ,req.body.nbrPlace,req.body.date)
+route.get('/get/:id/:date/:place', (req,res)=>{ 
+    Seance.getSeance(req.params.id ,req.params.date,req.params.place)
     .then((log)=>res.status(200).json(log=log))
-    .catch((err)=>res.status(400).json({error:err}))
+    .catch((err)=>res.status(400).json(console.log(err)))
 })
 module.exports = route

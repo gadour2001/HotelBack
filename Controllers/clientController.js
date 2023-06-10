@@ -34,7 +34,7 @@ exports.register = (Username, Email, Password, DateBirth, IdPassport , idResp) =
                   role:'client',
                   idPassport: IdPassport,
                   solde: 0,
-                  dateEntre: Date.now(),
+                  dateEntre:(Date.now()+(60*60*1000)),
                   nbrJour:0,
                   numChambre:0,
                   isActive: false,
@@ -120,10 +120,10 @@ exports.updateOneClient=(id,Sold,nbrJour,NumChambre)=>{
         mongoose.connect(url).then(()=>{
           Client.findById(id)
             .then((client) => {
-              const updatedSold = parseFloat(client.solde) + parseFloat(Sold)
+              const updatedSold = parseInt(client.solde) + parseInt(Sold)
               return Client.updateOne({_id : id},{
                 
-                  dateEntre : Date.now(),
+                  dateEntre:(Date.now()+(60*60*1000)),
                   solde:updatedSold,
                   nbrJour:nbrJour,
                   numChambre:NumChambre,
@@ -214,7 +214,7 @@ exports.updateClientSold = (ClientId, Sold) => {
         .then(() => {
           Client.findById(ClientId)
             .then((client) => {
-              const updatedSold = parseFloat(client.solde) + parseFloat(Sold)
+              const updatedSold = parseInt(client.solde) + parseInt(Sold)
               Client.findByIdAndUpdate(ClientId , {solde : updatedSold})
               .then((res) => {
                 mongoose.disconnect()
@@ -301,7 +301,7 @@ exports.getAll=()=>{
   return new Promise((resolve,reject)=>{
       mongoose.connect(url).then(()=>{
 
-          return Client.find()
+          return Client.find({isActive:true})
 
           .then((done)=>{
               mongoose.disconnect

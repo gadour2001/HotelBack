@@ -38,7 +38,7 @@ exports.postNewLog = (IdClient,IdResponsable,sold)=>{
       mongoose.connect(url).then(()=>{
           let new_log = Log({ 
             idClient:IdClient,
-            update_date:Date.now(),
+            update_date: (Date.now()+(60*60*1000)),
             idResponsableClient:IdResponsable,
             updated_sales:sold
           })

@@ -9,7 +9,7 @@ const clientkey = process.env.CLIENT_KEY
 //****************************** */
 route.post('/register', (req, res) => {
     clients.register(req.body.username,req.body.email,req.body.password,req.body.dateBirth,req.body.idPassport,req.body.idResp)
-    .then((user) => res.status(200).json(user=user))
+    .then((user) => res.status(200).json({msg:"client registred",user:user}))
     .catch((err) => console.log(err));
 })
 
@@ -20,25 +20,25 @@ route.get('/',(req,res)=>{
     .catch((err)=>res.status(400).json({error:err}))
 })
 
-
+//****************************** */
 route.put('/edit/:id',(req,res) =>{
     clients.updateOneClient(req.params.id,req.body.sold,req.body.nbrJour,req.body.numChambre)
-    .then((user)=>res.status(200).json({user:user,msg:"updated"}))
+    .then((user)=>res.status(200).json({msg:"client updated"}))
     .catch((err)=>res.status(400).json({error:err}))
 })
 //****************************** */
 route.put('/put/:id',(req,res) =>{
     clients.updateOneUser(req.params.id,req.body.username,req.body.dateBirth,req.body.idPassport)
-    .then((user)=>res.status(200).json({user:user,msg:"updated"}))
+    .then((user)=>res.status(200).json({msg:"client updated"}))
     .catch((err)=>res.status(400).json({error:err}))
 })
 //****************************** */
 route.put('/updateSold/:id',(req,res) =>{
     clients.updateClientSold(req.params.id,req.body.sold)
-    .then((user)=>res.status(200).json({user:user,msg:"updated"}))
+    .then((user)=>res.status(200).json({msg:"Balance updated"}))
     .catch((err)=>res.status(400).json({error:err}))
 })
-
+ 
 //****************************** */
 route.put('/put/status/:id',(req,res) =>{
     clients.updateclientStatus(req.params.id,req.body.isActive)
