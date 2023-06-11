@@ -32,7 +32,6 @@ exports.getSeance = (id, date , nbPlace) => {
                   let place = 0;
                   dateSeance = new Date(seance.time)
                   timeSeance = dateSeance.toISOString().split('T')[1].split('.')[0]
-                  console.log(timeSeance);
                   reservations.forEach((reservation) => {
                     dateRes = new Date(reservation.horaire)
                     timeReservation = dateRes.toISOString().split('T')[1].split('.')[0]
@@ -53,7 +52,6 @@ exports.getSeance = (id, date , nbPlace) => {
           } else {
             Seance.find({ idServiceProduct: id }).sort({ time: 1 })
               .then((res) => {
-                console.log('hello')
                 mongoose.disconnect()
                 resolve(res)
               })
@@ -71,7 +69,7 @@ exports.getSeance = (id, date , nbPlace) => {
         mongoose.disconnect()
         reject(error);
       })
-      })
+      }) 
       .catch((error) => {
         mongoose.disconnect()
         reject(error)

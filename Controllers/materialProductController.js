@@ -1,4 +1,5 @@
 const materialProduct = require ('../models/materialProduct')
+const category = require ('../models/category')
 const mongoose = require('mongoose')
 require('dotenv').config()
 
@@ -70,3 +71,28 @@ exports.updateQuantity=(id,Quantity)=>{
         }).catch((err)=>reject(err))
     })
 }
+
+
+exports.getQuantity = (id) => {
+    return new Promise((resolve, reject) => {
+      mongoose.connect(url).then(() => {
+        category.find({ idService: id })
+          .then((categories) => {
+            const categoryIds = categories.map((category) => category._id);
+            materialProduct.find({ idCategorie: { $in: categoryIds }, quantity: { $gte: 0, $lte: 10 } })
+              .then((products) => {
+                mongoose.disconnect();
+                resolve(products);
+              })
+              .catch((err) => {
+                mongoose.disconnect();
+                reject(err);
+              });
+          })
+          .catch((err) => {
+            mongoose.disconnect();
+            reject(err);
+          });
+      }).catch((err) => reject(err));
+    });
+  };

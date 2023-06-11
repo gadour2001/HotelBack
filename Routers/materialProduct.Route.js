@@ -21,4 +21,11 @@ route.post('/post',(req,res) =>{
     .catch((err)=>console.log(err))
 })
 
+route.get('/getProducts/:id',(req,res) =>{
+    materialproducts.getQuantity(req.params.id)
+    .then((product)=>res.status(200).json(product=product))
+    .catch((err)=>console.log(err))
+})
+
+
 module.exports = route

@@ -339,7 +339,7 @@ exports.getTodayClient = (id) => {
 exports.getAllClientIsActive=()=>{
     return new Promise((resolve,reject)=>{
         mongoose.connect(url).then(()=>{
-            return Client.find({isActive : true})
+            return Client.find({isActive : true}) 
 
             .then((done)=>{
                 mongoose.disconnect

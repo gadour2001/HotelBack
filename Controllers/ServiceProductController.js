@@ -28,7 +28,7 @@ exports.postNewServiceProduct=(Name,Description,Prix,Image,IdCategory,duree,nbPl
                         idServiceProduct:product._id,
                     })
                     new_seance.save().then((done)=>{
-                        console.log('mrgll')
+                        console.log('seance Created')
                         
                     }).catch((err)=>{
                         console.log(err)
@@ -50,7 +50,7 @@ function setTime(hour) {
     return date;
   }
 
-exports.updateOneServiceProduct=(id,Name,Description,Prix,Image,idCategory,duree,nbPlace)=>{
+exports.putServiceProduct=(id,Name,Description,Prix,Image,nbPlace)=>{
     return new Promise((resolve,reject)=>{
         mongoose.connect(url).then(()=>{
             return ServiceProduct.updateOne({_id : id},{
@@ -58,8 +58,6 @@ exports.updateOneServiceProduct=(id,Name,Description,Prix,Image,idCategory,duree
                 description:Description,
                 prix:Prix,
                 image:Image,
-                idCategorie:idCategory,
-                duree:duree,
                 nbPlace:nbPlace,
 
             }).then((done)=>{

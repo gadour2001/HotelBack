@@ -98,9 +98,16 @@ exports.deleteOneCategory=(id)=>{
             return Category.findByIdAndDelete(id)
 
             .then((done)=>{
-                Product.deleteMany({idCategorie : id})
-            }).catch((err)=>{
-                mongoose.disconnect
+                console.log(done);
+                Product.deleteMany({idCategorie : id}).then((res) =>  {
+                    mongoose.disconnect()
+                    resolve(res)
+                }).catch((err)=>{
+                    mongoose.disconnect()
+                    reject(err)
+                })
+            }).catch((err)=>{ 
+                mongoose.disconnect()
                 reject(err)
             })
         }).catch((err)=>reject(err))

@@ -38,22 +38,22 @@ exports.postNewCommande = (PrixTotal, IdClient, IdService, numtable, LigneComman
                             if (res.quantity !== -1) {
                                 return materialProduct.updateOne({ _id: ligne._id }, {
                                 quantity: parseInt(res.quantity) - parseInt(ligne.quantity)
-                                });
+                                })
                             }
-                            });
-                        });
-                    });
+                            })
+                        })
+                    })
         
                     return Promise.all(saveLigneCommandes)
                     .then(() => {
                         mongoose.disconnect()
                         console.log('Commande saved successfully')
-                    });
+                    })
                 })
                 .catch((err) => {
                     mongoose.disconnect()
                     throw err
-                });
+                })
             })
       .catch((err) => {
         throw err

@@ -6,19 +6,20 @@ route.get('/',(req,res)=>{
     .then((Reservations)=>res.status(200).json({Reservations:Reservations}))
     .catch((err)=>res.status(400).json({error:err}))
 })
+
 //****************************** */
 route.delete('/delete/:id',(req,res)=>{
     Reservations.deleteOneReservation(req.params.id)
     .then((Reservation)=>res.status(200).json({Reservations:Reservations,msg:"deleted"}))
     .catch((err)=>res.status(400).json({error:err}))
 })
+
 //****************************** */
 route.post('/post',(req,res) =>{
     Reservations.postNewReservation(req.body.prixTotal,req.body.idClient,req.body.idService,req.body.horaire,req.body.nbrPlace,req.body.idProduct)
     .then((Reservation)=>res.status(200).json({Reservation:Reservation,msg:"added"}))
     .catch((err)=>res.status(400).json({error:err}))
 })
-
 
 //****************************** */
 route.get('/get/Client/:id',(req,res)=>{
@@ -27,6 +28,7 @@ route.get('/get/Client/:id',(req,res)=>{
     .catch((err)=>console.log(err))
 })
 
+//****************************** */
 route.get('/get',(req,res)=>{
     Reservations.getAllReservation()
     .then((reservation)=>res.status(200).json(reservation=reservation))
@@ -46,6 +48,7 @@ route.get('/get/Servicefini/:id',(req,res)=>{
     .then((reservation)=>res.status(200).json(reservation = reservation))
     .catch((err)=>console.log(err))
 })
+
 //****************************** */
 route.put('/update/status/:id', (req, res) => {
     Reservations.updateReservationStatus(req.params.id, req.body.etat)
